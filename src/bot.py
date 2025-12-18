@@ -154,15 +154,15 @@ async def handle_code(update: Update, context: ContextTypes.DEFAULT_TYPE):
     result = run_code_safely(code)
     
     if result["success"]:
-        output = result["output"] or "کد بدون خطا اجرا شد (اما خروجی‌ای تولید نکرد)."
-        msg = f"""✅ خروجی:
-        {output}
-        """
+        output = result["output"] or "کد بدون خطا اجرا شد."
+        if "تست" in output:
+            msg = f"✅ خروجی آزمایشی:\n
+        else:
+            msg = f"✅ اجرا شد:\n\n{output[:1000]}\n```"
     else:
-        error = result["error"] or "خطای نامشخصی رخ داد."
-        msg = f"""❌ خطا:
-        {error} 
-        """
+        error = result["error"] or "خطای نامشخص"
+        msg = f"❌ خطا:\n\n{error[:1000]}\n```"
+
     
     # ارسال پیام (با پشتیبانی برای فرمت‌بندی)
     try:
@@ -192,7 +192,14 @@ async def handle_code(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 if quality["error_count"] == 0 and quality["score"] >= 9.0:
                     q_msg += "\n\n✅ کد شما از نظر سبک بسیار عالی است!"
                 
-                # ارسال گزارش کیفیت
+                # --- ثبت امتیاز برای کدهای موفق ---
+                if result.get("success", False):
+                   user_id = update.effective_user.id
+                   # ۲ امتیاز برای هر کد موفق
+                   update_user_level(user_id, "beginner", exp=2)
+                  # ثبت سابقه
+                  add_submission(user_id, 0, code, True, 2)
+                  # ارسال گزارش کیفیت
                 try:
                     await update.message.reply_text(q_msg)
                 except:
