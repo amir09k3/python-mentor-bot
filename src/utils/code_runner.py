@@ -25,7 +25,22 @@ def run_code_safely(code: str, timeout: int = 5) -> dict:
             "output": "",
             "error": "❌ کد حاوی دستورات خطرناک است. فقط کدهای آموزشی ساده مجازند."
         }
-    
+     # تولید خروجی برای کدهای تابعی
+    if "def " in code and "print(" not in code:
+        code += "\n\n# --- تست خودکار ---\n"
+        # اضافه کردن تست برای توابع رایج
+        if "add(" in code:
+            code += "print('تست add(2,3):', add(2, 3))"
+        elif "factorial(" in code or "fact(" in code:
+            code += "print('تست fact(5):', factorial(5) if 'factorial' in locals() else fact(5))"
+        elif "fib(" in code:
+            code += "print('تست fib(6):', fib(6))"
+        elif "reverse(" in code:
+            code += "print('تست reverse(\"abc\"):', reverse('abc'))"
+        else:
+            # تست عمومی
+            code += "# کد شما فقط تابع تعریف کرده — برای دیدن خروجی، از print استفاده کنید."
+
     # محدود کردن فضای اجرایی
     restricted_globals = {
         "builtins": {
@@ -95,4 +110,5 @@ def run_code_safely(code: str, timeout: int = 5) -> dict:
         }
     finally:
         sys.stdout = old_stdout
+
         sys.stderr = old_stderr
